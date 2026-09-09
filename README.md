@@ -1,102 +1,193 @@
-# Quebra de senha de ZIP via Wordlist (terminal)
+# Quebra de senha de ZIP via Wordlist (Terminal)
 
-Atividade individual de Segurança da Informação. O script `crack_zip.py`
-recebe um arquivo `.zip` protegido por senha e uma wordlist, e tenta cada
-senha da lista até encontrar a correta (ataque de dicionário).
 
-Inspirado nos conceitos do projeto [DeschaveZIP](https://github.com/lkaranl/DeschaveZIP),
-mas reimplementado do zero, em terminal, sem GTK, já que a atividade é individual.
+O script `crack_zip.py` recebe um arquivo `.zip` protegido por senha e uma wordlist e tenta cada senha da lista até encontrar a correta, utilizando um **ataque de dicionário**.
+
+O projeto foi inspirado nos conceitos do [DeschaveZIP](https://github.com/lkaranl/DeschaveZIP), porém foi **reimplementado do zero**, em terminal e sem GTK, conforme a proposta da atividade individual.
+
+---
+
+## Estrutura do projeto
+
+```text
+A4ZIP/
+│
+├── crack_zip.py
+├── teste_matrix.zip
+├── wordlist_exemplo.txt
+└── README.md
+```
+
 
 ## Como funciona
 
-1. **Detecção do tipo de criptografia**: o script lê os cabeçalhos do ZIP
-   (`flag_bits` e `compress_type` de cada entrada) para identificar se a
-   proteção é `ZipCrypto` (o método tradicional, suportado nativamente pelo
-   Python) ou `AES` (mais moderno, que o módulo `zipfile` do Python **não**
-   sabe descriptografar — nesse caso o script avisa e sugere usar o 7-Zip).
-2. **Ataque de dicionário**: para cada senha da wordlist, tenta abrir/ler um
-   arquivo dentro do ZIP com `zipfile.ZipFile.read(nome, pwd=senha)`. Se a
-   senha estiver errada, o Python levanta `RuntimeError` (senha inválida)
-   ou `zipfile.BadZipFile` (CRC não confere) — o script captura esses erros
-   e passa para a próxima senha.
-3. **Paralelismo**: usa `ThreadPoolExecutor` para testar várias senhas ao
-   mesmo tempo (padrão: 8 threads), com um `threading.Event` para parar
-   assim que a senha correta é encontrada.
-4. **Extração opcional**: com `--extract`, se a senha for encontrada, o
-   conteúdo do ZIP já é extraído automaticamente para a pasta indicada.
+### 1. Detecção do tipo de criptografia
+
+O script analisa as entradas do arquivo ZIP utilizando informações como `flag_bits` e `compress_type` para identificar se o arquivo utiliza:
+
+* **ZipCrypto** — método tradicional, suportado pelo módulo `zipfile` do Python.
+* **AES** — método mais moderno, que não é descriptografado nativamente pelo módulo `zipfile`.
+
+Quando um ZIP utiliza AES, o script pode utilizar o **7-Zip**, caso esteja instalado no sistema.
+
+### 2. 
+
+Para cada senha presente na wordlist, o programa tenta acessar um arquivo dentro do ZIP utilizando:
+
+```python
+zipfile.ZipFile.read(nome, pwd=senha)
+```
+
+Quando a senha está incorreta, o Python pode gerar erros como `RuntimeError` ou `BadZipFile`. Esses erros são tratados pelo programa e a execução continua com a próxima senha.
+
+A busca termina quando a senha correta é encontrada.
+
+### 3. 
+
+O projeto possui suporte a múltiplas threads utilizando:
+
+```python
+ThreadPoolExecutor
+```
+
+O número de threads pode ser definido através da opção `-t`.
+
+Por padrão, o programa utiliza até **8 threads**.
+
+### 4. 
+
+Quando a senha é encontrada, é possível extrair automaticamente o conteúdo do ZIP utilizando:
+
+```bash
+--extract ./saida
+```
+
+---
 
 ## Requisitos
 
-- Python 3.6+ (usa apenas biblioteca padrão: `zipfile`, `argparse`,
-  `concurrent.futures`, `threading`, `pathlib` — nada para instalar)
+* Python **3.6 ou superior**
+* Bibliotecas utilizadas da biblioteca padrão do Python:
+
+  * `zipfile`
+  * `argparse`
+  * `concurrent.futures`
+  * `threading`
+  * `pathlib`
+  * `subprocess`
+  * `tempfile`
+  * `queue`
+
+Para arquivos **ZipCrypto**, não é necessário instalar bibliotecas Python externas.
+
+Para trabalhar com arquivos **AES**, pode ser necessário ter o **7-Zip** instalado.
+
+---
 
 ## Uso
+
+A estrutura básica do comando é:
 
 ```bash
 python3 crack_zip.py -z arquivo.zip -w wordlist.txt
 ```
 
-Opções:
+### Opções
 
-| Flag         | Descrição                                              | Padrão |
-|--------------|----------------------------------------------------------|--------|
-| `-z / --zip`       | Caminho do arquivo ZIP protegido                    | obrigatório |
-| `-w / --wordlist`  | Caminho da wordlist (uma senha por linha)           | obrigatório |
-| `-t / --threads`   | Número de threads paralelas                         | 8 |
-| `--extract`        | Pasta onde extrair o conteúdo se a senha for achada | (não extrai) |
+| Flag               | Descrição                                                  | Padrão      |
+| ------------------ | ---------------------------------------------------------- | ----------- |
+| `-z`, `--zip`      | Caminho do arquivo ZIP protegido                           | Obrigatório |
+| `-w`, `--wordlist` | Caminho da wordlist, uma senha por linha                   | Obrigatório |
+| `-t`, `--threads`  | Número de threads paralelas                                | Até 8       |
+| `--extract`        | Pasta onde o conteúdo será extraído após encontrar a senha | Não extrai  |
 
-## Demonstração rápida (incluída neste pacote)
+### Exemplos
 
-Este pacote já vem com um ZIP de teste (`teste_matrix.zip`, protegido com a
-senha `matrix`) e uma wordlist de exemplo (`wordlist_exemplo.txt`) que
-contém a palavra `matrix` entre outras senhas comuns — prontos para testar:
+Executar o ataque:
+
+```bash
+python3 crack_zip.py -z arquivo.zip -w wordlist.txt
+```
+
+Utilizar 8 threads:
+
+```bash
+python3 crack_zip.py -z arquivo.zip -w wordlist.txt -t 8
+```
+
+Encontrar a senha e extrair o conteúdo:
+
+```bash
+python3 crack_zip.py -z arquivo.zip -w wordlist.txt --extract ./saida
+```
+
+---
+
+## Demonstração rápida
+
+O projeto possui um ZIP de teste chamado:
+
+```text
+teste_matrix.zip
+```
+
+Ele é protegido pela senha:
+
+```text
+matrix
+```
+
+A wordlist:
+
+```text
+wordlist_exemplo.txt
+```
+
+contém a senha `matrix` entre outras senhas comuns.
+
+Para executar:
 
 ```bash
 python3 crack_zip.py -z teste_matrix.zip -w wordlist_exemplo.txt
 ```
 
-Saída esperada:
+### Saída esperada
 
-```
-[*] Tipo de criptografia detectado:  ZipCrypto
-[*] Wordlist carregada:              30 senhas (wordlist_exemplo.txt)
+```text
+=================================================================
+             ZIP DICTIONARY CRACKER
+=================================================================
+[*] ZIP:       teste_matrix.zip
+[*] Wordlist:  wordlist_exemplo.txt
+[*] Threads:   8
+
+[*] Arquivo protegido: ZipCrypto (Padrão) | 602 senhas | 8 threads
+
 [+] SENHA ENCONTRADA: 'matrix'
+[+] Método: zipfile
 ```
 
-## Para usar com o arquivo do professor
+---
 
-Quando você tiver o arquivo ZIP real da atividade (o "arquivo em anexo"
-mencionado no enunciado, cuja senha é `matrix`), basta apontar o script
-para ele:
+## Utilização com o arquivo da atividade
+
+Quando estiver disponível o arquivo ZIP fornecido pelo professor, basta informar o caminho do arquivo e da wordlist:
 
 ```bash
-python3 crack_zip.py -z /caminho/para/arquivo_da_atividade.zip -w wordlist_exemplo.txt
+python3 crack_zip.py -z arquivo_da_atividade.zip -w wordlist_exemplo.txt
 ```
 
-Como a senha `matrix` já está na wordlist de exemplo, o script deve
-encontrá-la rapidamente — ótimo para a demonstração ao vivo em aula.
+Como a senha `matrix` está presente na wordlist de exemplo, o programa deverá encontrá-la caso o arquivo utilize a senha indicada no enunciado.
 
-## Roteiro sugerido para a demonstração em aula
+---
 
-1. Mostrar o ZIP protegido tentando abrir sem senha (mostra que pede senha).
-2. Rodar `python3 crack_zip.py -z arquivo.zip -w wordlist_exemplo.txt` e
-   explicar em voz alta o que está acontecendo: detecção do tipo de
-   criptografia → tentativa senha a senha → parada ao encontrar.
-3. Rodar de novo com `--extract ./saida` para mostrar a extração automática
-   do conteúdo assim que a senha é confirmada.
-4. (Opcional) Trocar a wordlist por uma sem a senha `matrix` para mostrar o
-   caso de falha, e depois por uma wordlist maior (ex.: `rockyou.txt`) para
-   falar sobre tempo de execução e efetividade de wordlists reais.
+## Estrutura do projeto
 
-## Limitações (bom mencionar na apresentação)
-
-- Só quebra **ZipCrypto** nativamente. ZIPs com criptografia **AES**
-  (comuns em arquivos gerados pelo WinZip/7-Zip modernos) exigiriam uma
-  ferramenta externa como o 7-Zip, assim como o próprio DeschaveZIP faz.
-- É um ataque de **dicionário**: só encontra a senha se ela estiver na
-  wordlist usada. Não é força bruta exaustiva.
-
-## Aviso
-
-Use apenas em arquivos que você tem autorização para testar (seus
-próprios arquivos ou material fornecido pela disciplina).
+```text
+A4ZIP/
+│
+├── crack_zip.py
+├── teste_matrix.zip
+├── wordlist_exemplo.txt
+└── README.md
+```
