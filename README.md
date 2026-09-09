@@ -3,7 +3,6 @@
 
 O script `crack_zip.py` recebe um arquivo `.zip` protegido por senha e uma wordlist e tenta cada senha da lista até encontrar a correta, utilizando um **ataque de dicionário**.
 
-O projeto foi inspirado nos conceitos do [DeschaveZIP](https://github.com/lkaranl/DeschaveZIP), porém foi **reimplementado do zero**, em terminal e sem GTK, conforme a proposta da atividade individual.
 
 ---
 
