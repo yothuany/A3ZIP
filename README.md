@@ -180,14 +180,3 @@ python3 crack_zip.py -z arquivo_da_atividade.zip -w wordlist_exemplo.txt
 Como a senha `matrix` está presente na wordlist de exemplo, o programa deverá encontrá-la caso o arquivo utilize a senha indicada no enunciado.
 
 ---
-
-## Estrutura do projeto
-
-```text
-A4ZIP/
-│
-├── crack_zip.py
-├── teste_matrix.zip
-├── wordlist_exemplo.txt
-└── README.md
-```
