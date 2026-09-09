@@ -101,19 +101,7 @@ python3 crack_zip.py -z arquivo.zip -w wordlist.txt
 | `-t`, `--threads`  | Número de threads paralelas                                | Até 8       |
 | `--extract`        | Pasta onde o conteúdo será extraído após encontrar a senha | Não extrai  |
 
-### Exemplos
-
-Executar o ataque:
-
-```bash
-python3 crack_zip.py -z arquivo.zip -w wordlist.txt
-```
-
-Utilizar 8 threads:
-
-```bash
-python3 crack_zip.py -z arquivo.zip -w wordlist.txt -t 8
-```
+### Exemplo
 
 Encontrar a senha e extrair o conteúdo:
 
